@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <cmath>
 #include <limits>
+#include <ros/ros.h>
 
 // CONSTRUCTORS
 driver::driver()
@@ -70,7 +71,7 @@ void driver::initialize()
     try
     {
         ROS_INFO_STREAM("Probing AK8963...");
-        mag_id = read_ak8963_register(register_ak8963_type::WHO_AM_I);
+        auto mag_id = read_ak8963_register(register_ak8963_type::WHO_AM_I);
         usleep(10000);
         if(mag_id != 0x48)
         {
@@ -263,7 +264,7 @@ void driver::p_gyro_fsr(gyro_fsr_type fsr)
 void driver::p_accel_fsr(accel_fsr_type fsr)
 {
     // Write accel FSR to register.
-    write_mpu9250_register(register_mpu9250_type::ACCEL_CONFIG, static_cast<unsigned char>(fsr << 3));
+    write_mpu9250_register(register_mpu9250_type::ACCEL_CONFIG, static_cast<unsigned char>(fsr) << 3);
 
     // Store the fsr.
     switch(fsr)

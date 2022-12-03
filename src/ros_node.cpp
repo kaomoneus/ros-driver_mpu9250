@@ -17,9 +17,6 @@ ros_node::ros_node(std::shared_ptr<driver> driver, int argc, char **argv)
     // Create a new driver.
     ros_node::m_driver = driver;
 
-    // Initialize the ROS node.
-    ros::init(argc, argv, "driver_mpu9250");
-
     // Get the node's handle.
     ros_node::m_node = std::make_shared<ros::NodeHandle>();
 
@@ -54,7 +51,7 @@ ros_node::ros_node(std::shared_ptr<driver> driver, int argc, char **argv)
         ros_node::m_driver->p_gyro_fsr(static_cast<driver::gyro_fsr_type>(param_gyro_fsr));
         ros_node::m_driver->p_accel_fsr(static_cast<driver::accel_fsr_type>(param_accel_fsr));
 
-        ROS_INFO_STREAM("mpu9250 driver successfully initialized on i2c bus " << param_i2c_bus << " at address 0x" << std::hex << param_i2c_address);
+        ROS_INFO_STREAM("mpu9250 driver (i2c) successfully initialized.");
         ROS_INFO_STREAM("sensor data rate is " << data_rate << " hz");
     }
     catch (std::exception& e)

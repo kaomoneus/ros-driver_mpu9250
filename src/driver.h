@@ -97,7 +97,14 @@ public:
 protected:
 
     // ENUMERATIONS
-    /// \brief Enumerates i2c control MPU9250 registers + AK8963 address.
+
+    /// \brief Everything which can't be sorted into rest of enums
+    enum class misc {
+        AK8963_ADDR = 0x0c,
+        READ_FLAG = 0x80
+    };
+
+    /// \brief Enumerates i2c control MPU9250 registers
     enum class register_i2c_control
     {
         USER_CTRL = 0x6a,
@@ -106,8 +113,7 @@ protected:
         SLV0_ADDR = 0x25,
         SLV0_DO = 0x63,
         SLV0_CTRL = 0x27,
-        EXT_SENS_DATA_00 = 0x49,
-        AK8963_ADDR = 0x0c;
+        EXT_SENS_DATA_00 = 0x49
     };
 
     /// \brief Enumerates the MPU9250 register addresses.

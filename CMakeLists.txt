@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-set(CMAKE_CXX_STANDARD 17)
+# set(CMAKE_CXX_STANDARD 17)
 project(driver_mpu9250)
 
 # Find catkin and package dependencies
@@ -44,6 +44,7 @@ if(pigpiod)
     target_link_libraries(${PROJECT_NAME}_rpi_node
       ${catkin_LIBRARIES}
       ${pigpiod}
+      rt
     )
     ## Mark executables and/or libraries for installation
     install(TARGETS ${PROJECT_NAME}_rpi_node

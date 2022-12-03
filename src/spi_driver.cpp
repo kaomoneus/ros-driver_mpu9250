@@ -9,9 +9,10 @@
 
 #include "SPIdev.h"
 
-unsigned int WriteReg(uint8_t WriteAddr, uint8_t WriteData)
+template <typename AddrT>
+unsigned int WriteReg(AddrT WriteAddr, uint8_t WriteData)
 {
-    unsigned char tx[2] = {WriteAddr, WriteData};
+    unsigned char tx[2] = {static_cast<unsigned char>(WriteAddr), WriteData};
     unsigned char rx[2] = {0};
 
     SPIdev::transfer("/dev/spidev0.1", tx, rx, 2);
@@ -19,19 +20,21 @@ unsigned int WriteReg(uint8_t WriteAddr, uint8_t WriteData)
     return rx[1];
 }
 
-unsigned int ReadReg(uint8_t ReadAddr)
+template <typename AddrT>
+unsigned int ReadReg(AddrT ReadAddr)
 {
-    return WriteReg(ReadAddr | READ_FLAG, 0x00);
+    return WriteReg((uint8_t)ReadAddr | (uint8_t)driver::misc::READ_FLAG, 0x00);
 }
 
-void ReadRegs(uint8_t ReadAddr, uint8_t *ReadBuf, unsigned int Bytes)
+template <typename AddrT>
+void ReadRegs(AddrT ReadAddr, uint8_t *ReadBuf, unsigned int Bytes)
 {
     unsigned int  i = 0;
 
     unsigned char tx[255] = {0};
     unsigned char rx[255] = {0};
 
-    tx[0] = ReadAddr | READ_FLAG;
+    tx[0] = (uint8_t)ReadAddr | (uint8_t)driver::misc::READ_FLAG;
 
     SPIdev::transfer("/dev/spidev0.1", tx, rx, Bytes + 1);
 
@@ -49,7 +52,7 @@ spi_driver::~spi_driver()
 }
 
 void time_callback(union sigval timer_data){
-    spi_driver *driver = timer_data.sival_ptr;
+    spi_driver *driver = static_cast<spi_driver*>(timer_data.sival_ptr);
     // Instruct the driver to read the available data from the registers.
     driver->read_data();
 }
@@ -77,7 +80,7 @@ void spi_driver::initialize_backend() {
     sev.sigev_notify_function = &time_callback;
     sev.sigev_value.sival_ptr = this;
 
-    res = timer_create(CLOCK_REALTIME, &sev, &this->timerId);
+    auto res = timer_create(CLOCK_REALTIME, &sev, &this->timerId);
 
     if (res != 0){
         std::stringstream message;
@@ -109,21 +112,27 @@ unsigned char spi_driver::read_mpu9250_register(register_mpu9250_type address)
 }
 void spi_driver::read_mpu9250_registers(register_mpu9250_type address, unsigned int n_bytes, char *buffer)
 {
-    ReadRegs(address, buffr, n_bytes);
+    ReadRegs(address, (uint8_t*)buffer, n_bytes);
 }
 
 void spi_driver::write_ak8963_register(register_ak8963_type address, unsigned char value)
 {
-    WriteReg(driver::register_i2c_control::SLV0_ADDR, driver::register_i2c_control::AK8963_ADDR);
-    WriteReg(driver::register_i2c_control::SLV0_REG, AK8963_CNTL1);
+    WriteReg(driver::register_i2c_control::SLV0_ADDR, (uint8_t)driver::misc::AK8963_ADDR);
+    WriteReg(driver::register_i2c_control::SLV0_REG, (uint8_t)driver::register_ak8963_type::CONTROL_1);
     WriteReg(driver::register_i2c_control::SLV0_DO, 0x12);
     WriteReg(driver::register_i2c_control::SLV0_CTRL, 0x81);
 }
 unsigned char spi_driver::read_ak8963_register(register_ak8963_type address)
 {
-    WriteReg(driver::register_i2c_control::SLV0_ADDR, AK8963_I2C_ADDR | READ_FLAG); //Set the I2C slave addres of AK8963 and set for read.
-    WriteReg(driver::register_i2c_control::SLV0_REG, address); //I2C slave 0 register address from where to begin data transfer
-    WriteReg(driver::register_i2c_control::SLV0_CTRL, 0x81); //Read 1 byte from the magnetometer
+    //Set the I2C slave addres of AK8963 and set for read.
+    WriteReg(
+        driver::register_i2c_control::SLV0_ADDR,
+        (uint8_t)driver::misc::AK8963_ADDR | (uint8_t)driver::misc::READ_FLAG
+    );
+    //I2C slave 0 register address from where to begin data transfer
+    WriteReg(driver::register_i2c_control::SLV0_REG, (uint8_t)address);
+    //Read 1 byte from the magnetometer
+    WriteReg(driver::register_i2c_control::SLV0_CTRL, 0x81);
     return ReadReg(driver::register_i2c_control::EXT_SENS_DATA_00);
 }
 void spi_driver::read_ak8963_registers(register_ak8963_type address, unsigned int n_bytes, char *buffer)
@@ -134,8 +143,14 @@ void spi_driver::read_ak8963_registers(register_ak8963_type address, unsigned in
         throw std::runtime_error(message.str());
     }
 
-    WriteReg(MPUREG_I2C_SLV0_ADDR, AK8963_I2C_ADDR | READ_FLAG); //Set the I2C slave addres of AK8963 and set for read.
-    WriteReg(MPUREG_I2C_SLV0_REG, address); //I2C slave 0 register address from where to begin data transfer
-    WriteReg(MPUREG_I2C_SLV0_CTRL, 0x80 + n_bytes); //Read 1 byte from the magnetometer
-    ReadRegs(MPUREG_EXT_SENS_DATA_00, buffer, n_bytes)
+    //Set the I2C slave addres of AK8963 and set for read.
+    WriteReg(
+        driver::register_i2c_control::SLV0_ADDR,
+        (uint8_t)driver::misc::AK8963_ADDR | (uint8_t)driver::misc::READ_FLAG
+    );
+    //I2C slave 0 register address from where to begin data transfer
+    WriteReg(driver::register_i2c_control::SLV0_REG, (uint8_t)address);
+    //Read 1 byte from the magnetometer
+    WriteReg(driver::register_i2c_control::SLV0_CTRL, 0x80 + n_bytes);
+    ReadRegs(driver::register_i2c_control::EXT_SENS_DATA_00, (uint8_t*)buffer, n_bytes);
 }

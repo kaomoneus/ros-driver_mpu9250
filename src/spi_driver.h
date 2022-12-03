@@ -20,10 +20,11 @@ public:
 
     // METHODS
     void initialize_backend() override;
+    void deinitialize_backend() override;
 
 private:
     // VARIABLES
-    int timerId = 0;
+    void* timerId = 0;
     // METHODS
     void write_mpu9250_register(register_mpu9250_type address, unsigned char value) override;
     unsigned char read_mpu9250_register(register_mpu9250_type address) override;

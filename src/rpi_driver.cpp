@@ -26,8 +26,9 @@ rpi_driver::~rpi_driver()
 
 void rpi_driver::initialize_backend() {
 
-    ROS_INFO_STREAM("Initializing RPI Driver backend.")
+    ROS_INFO_STREAM("Initializing RPI Driver backend.");
 
+    ros::NodeHandle private_node("~");
     int param_i2c_bus = private_node.param<int>("i2c_bus", 1);
     int param_i2c_address = private_node.param<int>("i2c_address", 0x68);
     int param_interrupt_pin = private_node.param<int>("interrupt_gpio_pin", 0);
@@ -40,7 +41,7 @@ void rpi_driver::initialize_backend() {
 }
 
 void rpi_driver::deinitialize_backend() {
-    deinitialize_i2c()
+    deinitialize_i2c();
 }
 
 void rpi_driver::initialize_i2c(unsigned int i2c_bus, unsigned int i2c_address, unsigned int interrupt_gpio_pin)
@@ -53,7 +54,7 @@ void rpi_driver::initialize_i2c(unsigned int i2c_bus, unsigned int i2c_address, 
     }
     rpi_driver::m_pigpio_handle = result;
 
-    ROS_INFO_STREAM("Opening I2C...")
+    ROS_INFO_STREAM("Opening I2C...");
 
     // Open the MPU9250 I2C channel.
     rpi_driver::m_mpu9250_i2c_handle = rpi_driver::open_i2c(i2c_bus, i2c_address);
@@ -61,7 +62,7 @@ void rpi_driver::initialize_i2c(unsigned int i2c_bus, unsigned int i2c_address, 
     // Open the AK8963 I2C channel.
     rpi_driver::m_ak8963_i2c_handle = rpi_driver::open_i2c(i2c_bus, 0x0C);
 
-    ROS_INFO_STREAM("Set up the interrupt pin...")
+    ROS_INFO_STREAM("Set up the interrupt pin...");
 
     result = set_mode(rpi_driver::m_pigpio_handle, interrupt_gpio_pin, PI_INPUT);
     if(result < 0)
@@ -121,6 +122,12 @@ void rpi_driver::initialize_i2c(unsigned int i2c_bus, unsigned int i2c_address, 
         }
         }
     }
+
+    ROS_INFO_STREAM(
+        "mpu9250 driver (i2c) intialized i2c bus: "
+        << i2c_bus << " at address 0x"
+        << std::hex << i2c_address
+    );
 }
 void rpi_driver::deinitialize_i2c()
 {
