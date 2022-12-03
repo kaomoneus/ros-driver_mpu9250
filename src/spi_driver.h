@@ -1,22 +1,22 @@
-/// \file rpi_driver.h
-/// \brief Defines the rpi_driver class.
-#ifndef RPI_DRIVER_H
-#define RPI_DRIVER_H
+/// \file spi_driver.h
+/// \brief Defines the spi_driver class.
+#ifndef SPI_DRIVER_H
+#define SPI_DRIVER_H
 
 #include "driver.h"
 
 ///
-/// \brief An MPU9250 driver for the Raspberry Pi.
+/// \brief An MPU9250 driver for the Raspberry Pi (SPI version).
 ///
 class spi_driver : public driver
 {
 public:
     // CONSTRUCTORS
     ///
-    /// \brief rpi_driver Initializes a new Raspberry Pi driver.
+    /// \brief spi_driver Initializes a new Raspberry Pi driver.
     ///
-    rpi_driver();
-    ~rpi_driver() override;
+    spi_driver();
+    ~spi_driver() override;
 
     // METHODS
     void initialize_backend() override;
@@ -34,4 +34,4 @@ private:
     void read_ak8963_registers(register_ak8963_type address, unsigned int n_bytes, char* buffer) override;
 };
 
-#endif // RPI_DRIVER_H
+#endif // SPI_DRIVER_H
