@@ -4,6 +4,7 @@
 #include <sensor_msgs_ext/gyroscope.h>
 #include <sensor_msgs_ext/magnetometer.h>
 #include <sensor_msgs_ext/temperature.h>
+#include <string>
 
 #include <cmath>
 
@@ -24,9 +25,7 @@ ros_node::ros_node(std::shared_ptr<driver> driver, int argc, char **argv)
 
     // Read parameters.
     ros::NodeHandle private_node("~");
-    int param_i2c_bus = private_node.param<int>("i2c_bus", 1);
-    int param_i2c_address = private_node.param<int>("i2c_address", 0x68);
-    int param_interrupt_pin = private_node.param<int>("interrupt_gpio_pin", 0);
+
     int param_gyro_dlpf_frequency = private_node.param<int>("gyro_dlpf_frequency", 0);
     int param_accel_dlpf_frequency = private_node.param<int>("accel_dlpf_frequency", 0);
     int param_gyro_fsr = private_node.param<int>("gyro_fsr", 0);
@@ -49,7 +48,7 @@ ros_node::ros_node(std::shared_ptr<driver> driver, int argc, char **argv)
         // Attach the data callback.
         ros_node::m_driver->set_data_callback(std::bind(&ros_node::data_callback, this, std::placeholders::_1));
         // Initialize driver.
-        ros_node::m_driver->initialize(static_cast<unsigned int>(param_i2c_bus), static_cast<unsigned int>(param_i2c_address), static_cast<unsigned int>(param_interrupt_pin));
+        ros_node::m_driver->initialize();
         // Set parameters.
         float data_rate = ros_node::m_driver->p_dlpf_frequencies(static_cast<driver::gyro_dlpf_frequency_type>(param_gyro_dlpf_frequency), static_cast<driver::accel_dlpf_frequency_type>(param_accel_dlpf_frequency), param_max_data_rate);
         ros_node::m_driver->p_gyro_fsr(static_cast<driver::gyro_fsr_type>(param_gyro_fsr));

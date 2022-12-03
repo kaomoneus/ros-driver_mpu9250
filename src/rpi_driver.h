@@ -19,10 +19,14 @@ public:
     ~rpi_driver() override;
 
     // METHODS
-    void initialize_i2c(unsigned int i2c_bus, unsigned int i2c_address, unsigned int interrupt_gpio_pin) override;
-    void deinitialize_i2c() override;
+    void initialize_backend() override;
+    void deinitialize_backend() override;
 
 private:
+    // METHODS
+    void initialize_i2c(unsigned int i2c_bus, unsigned int i2c_address, unsigned int interrupt_gpio_pin);
+    void deinitialize_i2c();
+
     // VARIABLES
     ///
     /// \brief m_pigpio_handle Stores the pigpio daemon handle.

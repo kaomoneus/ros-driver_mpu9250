@@ -23,14 +23,15 @@ void driver::set_data_callback(std::function<void (data)> callback)
 }
 
 // INITIALIZATION
-void driver::initialize(unsigned int i2c_bus, unsigned int i2c_address, unsigned int interrupt_gpio_pin)
+void driver::initialize()
 {
-    // Initialize I2C:
-    initialize_i2c(i2c_bus, i2c_address, interrupt_gpio_pin);
+    // All sorts of specific ROS params are there
+    initialize_backend();
 
     // Test MPU9250 communications.
     try
     {
+        ROS_INFO_STREAM("Probing MPU9250...");
         if(read_mpu9250_register(register_mpu9250_type::WHO_AM_I) != 0x71)
         {
             throw std::runtime_error("MPU9250 device ID mismatch.");
@@ -43,6 +44,7 @@ void driver::initialize(unsigned int i2c_bus, unsigned int i2c_address, unsigned
         throw std::runtime_error(message.str());
     }
 
+    ROS_INFO_STREAM("Power on MPU9250 sensors and reset default settings.");
     // Power on MPU9250 sensors and reset default settings.
     write_mpu9250_register(register_mpu9250_type::PWR_MGMT_1, 0x80);
     // Sleep for 50ms to let sensors come online.
@@ -57,6 +59,7 @@ void driver::initialize(unsigned int i2c_bus, unsigned int i2c_address, unsigned
     write_mpu9250_register(driver::register_mpu9250_type::INT_ENABLE, 0x01);
 
     // Wake up chip.
+    ROS_INFO_STREAM("Wake up chip.");
     write_mpu9250_register(driver::register_mpu9250_type::PWR_MGMT_1, 0x00);
 
     // Follow default FSR values.
@@ -66,7 +69,10 @@ void driver::initialize(unsigned int i2c_bus, unsigned int i2c_address, unsigned
     // Test AK8963 communications.
     try
     {
-        if(read_ak8963_register(register_ak8963_type::WHO_AM_I) != 0x48)
+        ROS_INFO_STREAM("Probing AK8963...");
+        mag_id = read_ak8963_register(register_ak8963_type::WHO_AM_I);
+        usleep(10000);
+        if(mag_id != 0x48)
         {
             throw std::runtime_error("AK8963 device ID mismatch.");
         }
@@ -89,8 +95,7 @@ void driver::deinitialize()
     // Power down the MPU9250.
     write_mpu9250_register(register_mpu9250_type::PWR_MGMT_1, 0x40);
 
-    // Deinit I2C.
-    deinitialize_i2c();
+    deinitialize_backend();
 }
 
 // PROPERTIES
@@ -258,7 +263,7 @@ void driver::p_gyro_fsr(gyro_fsr_type fsr)
 void driver::p_accel_fsr(accel_fsr_type fsr)
 {
     // Write accel FSR to register.
-    write_mpu9250_register(register_mpu9250_type::ACCEL_CONFIG, static_cast<unsigned char>(fsr));
+    write_mpu9250_register(register_mpu9250_type::ACCEL_CONFIG, static_cast<unsigned char>(fsr << 3));
 
     // Store the fsr.
     switch(fsr)

@@ -2,7 +2,7 @@
 <package format="2">
 
   <name>driver_mpu9250</name>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
   <description>A ROS driver for the InvenSense MPU9250 9DoF IMU.</description>
   <license>MIT</license>
 

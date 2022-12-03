@@ -70,10 +70,8 @@ public:
 
     // INITIALIZATION
     /// \brief Initializes the MPU9250.
-    /// \param i2c_bus The I2C bus to communicate with the MPU9250 over.
-    /// \param i2c_address The I2C address of the MPU9250.
-    /// \param interrupt_gpio_pin The GPIO pin connected to the MPU9250's interrupt pin.
-    void initialize(unsigned int i2c_bus, unsigned int i2c_address, unsigned int interrupt_gpio_pin);
+    void initialize();
+
     /// \brief Deinitializes the MPU9250.
     void deinitialize();
 
@@ -97,7 +95,21 @@ public:
     void read_data();
 
 protected:
+
     // ENUMERATIONS
+    /// \brief Enumerates i2c control MPU9250 registers + AK8963 address.
+    enum class register_i2c_control
+    {
+        USER_CTRL = 0x6a,
+        I2C_MST_CTRL = 0x24,
+        SLV0_REG = 0x26,
+        SLV0_ADDR = 0x25,
+        SLV0_DO = 0x63,
+        SLV0_CTRL = 0x27,
+        EXT_SENS_DATA_00 = 0x49,
+        AK8963_ADDR = 0x0c;
+    };
+
     /// \brief Enumerates the MPU9250 register addresses.
     enum class register_mpu9250_type
     {
@@ -140,14 +152,11 @@ protected:
         CONTROL_1 = 0x0A
     };
 
-    // METHODS
-    /// \brief Initializes the I2C and GPIO interface of the driver.
-    /// \param i2c_bus The I2C bus to interface with the MPU9250 over.
-    /// \param i2c_address The I2C address of the MPU9250.
-    /// \param interrupt_gpio_pin The GPIO input pin that is connected to the MPU9250 interrupt pin.
-    virtual void initialize_i2c(unsigned int i2c_bus, unsigned int i2c_address, unsigned int interrupt_gpio_pin) = 0;
-    /// \brief Deinitialies the I2C interface of the driver.
-    virtual void deinitialize_i2c() = 0;
+    /// \brief Initialized driver backend, namely physical driver interface and data-ready event
+    virtual void initialize_backend() = 0;
+
+    /// \brief Deinitializes whatever been initialized during initialize_backend call.
+    virtual void deinitialize_backend() {};
 
     /// \brief Writes data to a register on the MPU9250.
     /// \param address The address of the register to write to.
